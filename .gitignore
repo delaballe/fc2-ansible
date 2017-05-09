@@ -8,6 +8,5 @@ config/*.ini
 config/fc2.yml
 cli/
 bin/
-lib/
 include/
 man/
