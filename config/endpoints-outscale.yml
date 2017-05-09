@@ -1,0 +1,34 @@
+---
+  partitions: 
+    - 
+      defaults: 
+        hostname: "fcu.{region}.{dnsSuffix}"
+        protocols: 
+          - "https"
+        signatureVersions: 
+          - "v4"
+      dnsSuffix: "outscale.com"
+      partition: "aws"
+      partitionName: "Outscale Standard"
+      regionRegex: "^(us|eu|cn)\\-\\w+\\-\\d+$"
+      regions: 
+        eu-west-1: 
+          description: "EU (Ireland)"
+        eu-west-2: 
+          description: "EU (London)"
+        us-east-1: 
+          description: "US East (N. Virginia)"
+        us-east-2: 
+          description: "US East (Ohio)"
+      services: 
+        ec2: 
+          defaults: 
+            hostname: "fcu.{region}.{dnsSuffix}"
+            protocols: 
+              - "http"
+              - "https"
+          endpoints: 
+            eu-west-2: {}
+            us-west-2: {}
+  version: 3
+

@@ -1,0 +1,13 @@
+*.retry
+*.pyc
+*.pyo
+.Python
+pip-selfcheck.json
+entrypoint.sh
+config/*.ini
+config/fc2.yml
+cli/
+bin/
+lib/
+include/
+man/
