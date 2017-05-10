@@ -73,3 +73,5 @@ function install() {
   pip install -r requirement-pip
   pip install -r requirement-fcu-ansible
 }
+
+install $1
