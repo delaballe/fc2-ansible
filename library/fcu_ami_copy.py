@@ -128,7 +128,7 @@ import time
 
 try:
     import fcu_boto
-    import fcu_boto.ec2
+    import fcu_boto.fcu
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
@@ -252,4 +252,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

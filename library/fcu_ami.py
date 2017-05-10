@@ -294,8 +294,8 @@ import time
 
 try:
     import fcu_boto
-    import fcu_boto.ec2
-    from fcu_boto.ec2.blockdevicemapping import BlockDeviceType, BlockDeviceMapping
+    import fcu_boto.fcu
+    from boto.ec2.blockdevicemapping import BlockDeviceType, BlockDeviceMapping
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False

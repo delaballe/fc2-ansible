@@ -584,10 +584,10 @@ from ansible.module_utils.six import iteritems
 from ansible.module_utils.six import get_function_code
 
 try:
-    import fcu_boto.ec2
-    from fcu_boto.ec2.blockdevicemapping import BlockDeviceType, BlockDeviceMapping
-    from fcu_boto.exception import EC2ResponseError
+    import fcu_boto.fcu
     from fcu_boto.vpc import VPCConnection
+    from boto.ec2.blockdevicemapping import BlockDeviceType, BlockDeviceMapping
+    from boto.exception import EC2ResponseError
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
@@ -730,7 +730,7 @@ def boto_supports_associate_public_ip_address(ec2):
     """
 
     try:
-        network_interface = fcu_boto.ec2.networkinterface.NetworkInterfaceSpecification()
+        network_interface = boto.ec2.networkinterface.NetworkInterfaceSpecification()
         getattr(network_interface, "associate_public_ip_address")
         return True
     except AttributeError:
@@ -804,7 +804,7 @@ def await_spot_requests(module, ec2, spot_requests, count):
 
     module: Ansible module object
     ec2: authenticated ec2 connection object
-    spot_requests: fcu_boto.ec2.spotinstancerequest.SpotInstanceRequest object returned by ec2.request_spot_instances
+    spot_requests: boto.ec2.spotinstancerequest.SpotInstanceRequest object returned by ec2.request_spot_instances
     count: Total number of instances to be created by the spot requests
 
     Returns:
@@ -993,7 +993,7 @@ def create_instances(module, ec2, vpc, override_count=None):
                 group_id = [group_id]
             grp_details = ec2.get_all_security_groups(group_ids=group_id)
             group_name = [grp_item.name for grp_item in grp_details]
-    except fcu_boto.exception.NoAuthHandlerFound as e:
+    except boto.exception.NoAuthHandlerFound as e:
             module.fail_json(msg = str(e))
 
     # Lookup any instances that much our run id.
@@ -1049,17 +1049,17 @@ def create_instances(module, ec2, vpc, override_count=None):
 
                 else:
                     if private_ip:
-                        interface = fcu_boto.ec2.networkinterface.NetworkInterfaceSpecification(
+                        interface = boto.ec2.networkinterface.NetworkInterfaceSpecification(
                             subnet_id=vpc_subnet_id,
                             private_ip_address=private_ip,
                             groups=group_id,
                             associate_public_ip_address=assign_public_ip)
                     else:
-                        interface = fcu_boto.ec2.networkinterface.NetworkInterfaceSpecification(
+                        interface = boto.ec2.networkinterface.NetworkInterfaceSpecification(
                             subnet_id=vpc_subnet_id,
                             groups=group_id,
                             associate_public_ip_address=assign_public_ip)
-                    interfaces = fcu_boto.ec2.networkinterface.NetworkInterfaceCollection(interface)
+                    interfaces = boto.ec2.networkinterface.NetworkInterfaceCollection(interface)
                     params['network_interfaces'] = interfaces
             else:
                 if network_interfaces:
@@ -1067,12 +1067,12 @@ def create_instances(module, ec2, vpc, override_count=None):
                         network_interfaces = [network_interfaces]
                     interfaces = []
                     for i, network_interface_id in enumerate(network_interfaces):
-                        interface = fcu_boto.ec2.networkinterface.NetworkInterfaceSpecification(
+                        interface = boto.ec2.networkinterface.NetworkInterfaceSpecification(
                             network_interface_id=network_interface_id,
                             device_index=i)
                         interfaces.append(interface)
                     params['network_interfaces'] = \
-                        fcu_boto.ec2.networkinterface.NetworkInterfaceCollection(*interfaces)
+                        boto.ec2.networkinterface.NetworkInterfaceCollection(*interfaces)
                 else:
                     params['subnet_id'] = vpc_subnet_id
                     if vpc_subnet_id:
@@ -1120,7 +1120,7 @@ def create_instances(module, ec2, vpc, override_count=None):
                     try:
                         ec2.get_all_instances(instids)
                         break
-                    except fcu_boto.exception.EC2ResponseError as e:
+                    except boto.exception.EC2ResponseError as e:
                         if "<Code>InvalidInstanceID.NotFound</Code>" in str(e):
                             # there's a race between start and get an instance
                             continue
@@ -1166,7 +1166,7 @@ def create_instances(module, ec2, vpc, override_count=None):
                 # Now we have to do the intermediate waiting
                 if wait:
                     instids = await_spot_requests(module, ec2, res, count)
-        except fcu_boto.exception.BotoServerError as e:
+        except boto.exception.BotoServerError as e:
             module.fail_json(msg = "Instance creation failed => %s: %s" % (e.error_code, e.error_message))
 
         # wait here until the instances are up
@@ -1175,7 +1175,7 @@ def create_instances(module, ec2, vpc, override_count=None):
         while wait_timeout > time.time() and num_running < len(instids):
             try:
                 res_list = ec2.get_all_instances(instids)
-            except fcu_boto.exception.BotoServerError as e:
+            except boto.exception.BotoServerError as e:
                 if e.error_code == 'InvalidInstanceID.NotFound':
                     time.sleep(1)
                     continue
@@ -1217,7 +1217,7 @@ def create_instances(module, ec2, vpc, override_count=None):
         if instance_tags:
             try:
                 ec2.create_tags(instids, instance_tags)
-            except fcu_boto.exception.EC2ResponseError as e:
+            except boto.exception.EC2ResponseError as e:
                 module.fail_json(msg = "Instance tagging failed => %s: %s" % (e.error_code, e.error_message))
 
     instance_dict_array = []
@@ -1357,7 +1357,7 @@ def startstop_instances(module, ec2, instance_ids, state, instance_tags):
                 if inst.vpc_id is not None and inst.get_attribute('sourceDestCheck')['sourceDestCheck'] != source_dest_check:
                     inst.modify_attribute('sourceDestCheck', source_dest_check)
                     changed = True
-            except fcu_boto.exception.EC2ResponseError as exc:
+            except boto.exception.EC2ResponseError as exc:
                 # instances with more than one Elastic Network Interface will
                 # fail, because they have the sourceDestCheck attribute defined
                 # per-interface
@@ -1464,7 +1464,7 @@ def restart_instances(module, ec2, instance_ids, state, instance_tags):
                 if inst.vpc_id is not None and inst.get_attribute('sourceDestCheck')['sourceDestCheck'] != source_dest_check:
                     inst.modify_attribute('sourceDestCheck', source_dest_check)
                     changed = True
-            except fcu_boto.exception.EC2ResponseError as exc:
+            except boto.exception.EC2ResponseError as exc:
                 # instances with more than one Elastic Network Interface will
                 # fail, because they have the sourceDestCheck attribute defined
                 # per-interface
@@ -1550,8 +1550,8 @@ def main():
                              ],
     )
 
-    if not HAS_BOTO:
-        module.fail_json(msg='boto required for this module')
+    #if not HAS_BOTO:
+    #    module.fail_json(msg='boto required for this module')
 
     ec2 = ec2_connect(module)
 
@@ -1560,7 +1560,7 @@ def main():
     if region:
         try:
             vpc = connect_to_aws(fcu_boto.vpc, region, **aws_connect_kwargs)
-        except fcu_boto.exception.NoAuthHandlerFound as e:
+        except boto.exception.NoAuthHandlerFound as e:
             module.fail_json(msg = str(e))
     else:
         vpc = None

@@ -110,7 +110,7 @@ EXAMPLES = '''
 '''
 
 try:
-    import fcu_boto.ec2
+    import fcu_boto.fcu
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
