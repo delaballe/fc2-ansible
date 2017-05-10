@@ -62,10 +62,9 @@ function parDir() {
 
 function install() {
   local dest=${1}
-  export SCRIPT="${BASH_SOURCE[0]}"
-  SCRIPT=$( absPath ${SCRIPT} )
-  export SCRIPT_DIR=$( dirName ${SCRIPT} )
-
+  export SCRIPT_DIR="${BASH_SOURCE[0]}"
+  SCRIPT_DIR=$( absPath ${SCRIPT} )
+  
   git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${dest}
   cd ${SCRIPT_DIR}/${dest}
   virtualenv --always-copy .
