@@ -1,0 +1,2 @@
+git+ssh://git@git-int.admin/docker-marketplace/fcu-boto.git
+git+ssh://git@git-int.admin/docker-marketplace/fcu-ansible-lib.git
