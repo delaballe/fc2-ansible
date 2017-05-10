@@ -64,13 +64,21 @@ function install() {
   local dest=${1}
   export SCRIPT_DIR="${BASH_SOURCE[0]}"
   SCRIPT_DIR=$( absPath ${SCRIPT} )
-  
-  git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${dest}
-  cd ${SCRIPT_DIR}/${dest}
-  virtualenv --always-copy .
-  . ./bin/activate
-  pip install -r requirement-pip
-  pip install -r requirement-fcu-ansible
+
+  if [[ ! -d "${SCRIPT_DIR}/${dest}" ]]
+  then
+    git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${dest}
+    cd ${SCRIPT_DIR}/${dest}
+    virtualenv --always-copy .
+    . ./bin/activate
+    pip install -r requirement-pip
+    pip install -r requirement-fcu-ansible
+    exit 0
+  else
+    echo "The project ${dest} Allready exist !!!"
+    exit 1
+  fi
+
 }
 
 install $1
