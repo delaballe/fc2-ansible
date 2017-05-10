@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+## Copyright(c) 2017, Cyril Gratecos®
+## All rights reserved.
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##      http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+##=============================================================================
+##
+## Title          : fcu-ansible
+## Description    : This script can be sourced to setup the environment (for dev)
+##                  or executed to setup the environement and launch the command
+##                  passed as arguments. It's used as the Entrypoint fot the
+##                  fc2-ansible Docker container.
+##
+##                  fcu-ansible allow you to manage entire Lifecycle of
+##                  Network & System architecture in the Outscale® Cloud
+##                  Platform.
+## Notes          :
+## Author	        : Cyril Gratecos <cyril.gratecos@gmail.com>
+## Contributors   :
+## License	      : Apache® 2.0
+## Date           : 20172603
+## Version        : 0.1
+## Usage	        : ./fcu-ansible --help
+## Github         :
+## Home           :
+## Bash_version   : 4.3.46(1)-release
+## Python_version : 2.7.12
+##
+##=============================================================================
+
+set -euf -o pipefail +o nounset
+
+function absPath() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.realpath('${dest}')" )
+  echo ${dest}
+}
+
+function dirName() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.dirname('${dest}')" )
+  echo ${dest}
+}
+
+function parDir() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.split(os.path.abspath('${dest}'))[0]" )
+  echo ${dest}
+}
+
+export SCRIPT="${BASH_SOURCE[0]}"
+SCRIPT=$( absPath $SCRIPT )
+SCRIPT_DIR=$( parDir $( dirName $SCRIPT ) )
+cd $SCRIPT_DIR
+
+virtualenv --always-copy .
+. ./bin/activate
+pip install -r requirement-pip

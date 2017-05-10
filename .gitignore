@@ -8,5 +8,6 @@ config/*.ini
 config/fc2.yml
 cli/
 bin/
+!bin/fcu-ansible
 include/
 man/
