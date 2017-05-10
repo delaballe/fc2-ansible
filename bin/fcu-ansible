@@ -64,7 +64,7 @@ function install() {
   local dest=${1}
   export SCRIPT="${BASH_SOURCE[0]}"
   SCRIPT=$( absPath ${SCRIPT} )
-  export SCRIPT_DIR=$( parDir $( dirName ${SCRIPT} ) )
+  export SCRIPT_DIR=$( dirName ${SCRIPT} )
 
   git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${dest}
   cd ${SCRIPT_DIR}/${dest}
