@@ -1,0 +1,22 @@
+---
+cloud:
+  vpcs:
+    - name: outscale.io
+      id: vpc-884fd7fc
+
+  security_groups:
+    - name: outscale.io
+      id: sg-f63c04a3
+
+  instances:
+    - instance_type: t2.micro
+      image: ami-5715ea3e
+      group:
+        - outscale.io
+      vpc_subnet_id: subnet-c4d4a7e5
+      tags:
+        Name: Docker - Redis
+        roles:
+          - marketplace
+          - redis
+      count: 1

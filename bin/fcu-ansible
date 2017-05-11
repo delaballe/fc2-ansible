@@ -136,7 +136,23 @@ function rolesGet() {
   }
 
 function playbookGet() {
-  echo
+  local playbook=$1
+  printf "\n        %s \n" "console --> /tmp/fcu-ansible-$DATE.log"
+
+  task "Cloning fcu-ansible" "git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${playbook}"
+}
+
+function playbooksList() {
+  gitlab -v -c config/gitlab.ini project search --query playbook | grep -E "(^ssh-url-to-repo:|^id:|^name:)"
+}
+
+function playbooksSearch() {
+  local query=$1
+  gitlab -v -c config/gitlab.ini project list --all | grep playbook | grep $query | grep -E "(^ssh-url-to-repo:|^id:|^name:)"
+  if [[ $? -ne 0 ]]
+  then
+    printf "\n\t\t%s \n" "No playbook Found matching $query"
+  fi
 }
 
 function checkResult() {
@@ -190,7 +206,21 @@ case "$1" in
         fi
         ;;
 
+  playbook)
+        case "$2" in
+          get)
+            playbookGet $3
+            ;;
+          list)
+            playbooksList
+            ;;
+          search)
+            playbooksSearch $3
+            ;;
+        esac
+        ;;
   *)
         echo $"Usage: $0 {install|role|playbook}"
         exit 1
+        ;;
 esac

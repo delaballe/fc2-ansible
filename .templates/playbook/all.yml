@@ -1,0 +1,5 @@
+---
+
+- include:  provision.yml
+- include:  deploy.yml
+- include:  image.yml

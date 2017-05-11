@@ -1,0 +1,5 @@
+---
+docker:
+  image: redis
+  volumes:
+    datas: /data 

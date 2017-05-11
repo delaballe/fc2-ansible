@@ -1,0 +1,11 @@
+---
+
+- name: Deploy Instance
+  hosts: cloud
+  vars_files:
+    - ../vars/account.yml
+    - vars/cloud.yml
+    - vars/docker.yml
+
+  roles:
+    - outscale.docker.marketplace

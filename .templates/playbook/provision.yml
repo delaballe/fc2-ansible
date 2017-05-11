@@ -1,0 +1,14 @@
+---
+
+- name: Provision Instance
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+
+  pre_tasks:
+    - include_vars: ../vars/account.yml
+    - include_vars: vars/cloud.yml
+
+  roles:
+    - outscale.cloud.instance

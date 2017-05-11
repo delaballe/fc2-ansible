@@ -1,0 +1,42 @@
+---
+
+- name: Prepare Instance for OMI
+  hosts: cloud
+  vars_files:
+    - ../vars/account.yml
+    - vars/cloud.yml
+
+  roles:
+    - outscale.cloud.omi
+
+- name: Transform Instance to OMI
+  hosts: localhost
+  connection: local
+  gather_facts: True
+
+  tasks:
+
+    - name: Create Outscale OMI
+      fcu_ami:
+        region: "{{account.region}}"
+        aws_access_key: "{{account.access_key}}"
+        aws_secret_key: "{{account.secret_key}}"
+        instance_id: "{{ item.1.id }}"
+        wait: yes
+        name: "{{item.1.tags.Name}}"
+        tags: "{{item.1.tags}}"
+      with_subelements:
+        - "{{osc_instances.results}}"
+        - instances
+
+- name: Remove Instance
+  hosts: localhost
+  connection: local
+  gather_facts: True
+  
+  vars_files:
+    - ../vars/account.yml
+    - vars/cloud.yml
+
+  roles:
+    - outscale.cloud.omi
