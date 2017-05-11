@@ -5,6 +5,7 @@ MAINTAINER Cyril Gratecos cyril.gratecos@gamil.com
 RUN apk add --update --no-cache \
       bash \
       gettext \
+      openssh \
       git \
       python \
       python-dev \
