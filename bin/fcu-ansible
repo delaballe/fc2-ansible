@@ -81,7 +81,7 @@ function doInstall() {
   then
     doSplash
     printf "\n        %s \n" "console --> /tmp/fcu-ansible-$DATE.log"
-    task "Cloning fcu-ansible" "git clone git@git-int.admin:docker-marketplace/fcu-ansible.git ${dest}"
+    task "Cloning fcu-ansible" "git clone https://github.com/delaballe/fcu-ansible.git ${dest}"
     cd ${SCRIPT_DIR}/${dest}
     task "Creating Virtualenv" "virtualenv --always-copy ."
     . ./bin/activate
