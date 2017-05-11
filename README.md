@@ -43,11 +43,11 @@ It also include [fcu-ansible-inventory](https://github.com/delaballe/fcu-ansible
 
 ## Dependencies
 
+the packages bellow should be installed in your system before you cans tun the install process
+
 - python >= 2.7  
 - virtualenv  
 - pip  
-- fcu-boto  
-- fcu-ansible-lib   
 
 ## Install
 
