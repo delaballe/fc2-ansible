@@ -27,12 +27,12 @@
 ##                  Network & System architecture in the Outscale® Cloud
 ##                  Platform.
 ## Notes          :
-## Author	        : Cyril Gratecos <cyril.gratecos@gmail.com>
+## Author	  : Cyril Gratecos <cyril.gratecos@gmail.com>
 ## Contributors   :
-## License	      : Apache® 2.0
+## License	  : Apache® 2.0
 ## Date           : 20172603
 ## Version        : 0.1
-## Usage	        : ./fcu-ansible --help
+## Usage	  : ./fcu-ansible --help
 ## Github         :
 ## Home           :
 ## Bash_version   : 4.3.46(1)-release
