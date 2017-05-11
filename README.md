@@ -51,21 +51,19 @@ It also include [fcu-ansible-inventory](https://github.com/delaballe/fcu-ansible
 
 ## Install
 
-```bash
-git clone https://github.com/delaballe/fcu-ansible.git
-cd fcu-ansible
-virtualenv .
-. ./bin/activate
-pip install -r requirement-pip
+The command bellow will create a folder PROJECT_NAME  in your current path, then it'll install & setup fcu-ansible in this folder
 
-cat <<'EOF' >> config/outscale.ini
-[default]
-region = <YOUR OUTSCALE API REGION>
-aws_access_key_id = <YOUR OUTSCALE API ACCESS KEY ID>
-aws_secret_access_key =  <YOUR OUTSCALE API ACCESS KEY>
-EOF
+```bash
+wget -O - https://raw.githubusercontent.com/delaballe/fcu-ansible/master/bin/fcu-ansible | bash -s -- PROJECT_NAME
 ```
 
-And voilà !!! you're ready to play provision & deploy in the Outscale Cloud Platform using Ansible.
-
 ## Usage
+
+```bash
+cd PROJECT_NAME
+. ./bin/activate
+```
+
+You're ready to provision & deploy in the Outscale Cloud Platform using Ansible.
+
+Have Fun !!!
