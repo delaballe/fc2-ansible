@@ -54,7 +54,7 @@ the packages bellow should be installed in your system before you cans tun the i
 The command bellow will create a folder PROJECT_NAME  in your current path, then it'll install & setup fcu-ansible in this folder
 
 ```bash
-wget -O - https://raw.githubusercontent.com/delaballe/fcu-ansible/master/bin/fcu-ansible | bash -s -- install PROJECT_NAME
+wget https://raw.githubusercontent.com/delaballe/fcu-ansible/master/bin/fcu-ansible && bash install PROJECT_NAME && rm -rf fcu-ansible
 ```
 
 ## Usage

@@ -1,0 +1,226 @@
+#!/bin/bash
+#
+## Copyright(c) 2017, Cyril Gratecos®
+## All rights reserved.
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##      http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+##=============================================================================
+##
+## Title          : fcu-ansible
+## Description    : This script can be sourced to setup the environment (for dev)
+##                  or executed to setup the environement and launch the command
+##                  passed as arguments. It's used as the Entrypoint fot the
+##                  fc2-ansible Docker container.
+##
+##                  fcu-ansible allow you to manage entire Lifecycle of
+##                  Network & System architecture in the Outscale® Cloud
+##                  Platform.
+## Notes          :
+## Author	  : Cyril Gratecos <cyril.gratecos@gmail.com>
+## Contributors   :
+## License	  : Apache® 2.0
+## Date           : 20172603
+## Version        : 0.1
+## Usage	  : ./fcu-ansible --help
+## Github         :
+## Home           :
+## Bash_version   : 4.3.46(1)-release
+## Python_version : 2.7.12
+##
+##=============================================================================
+
+#set -euf -o pipefail +o nounset
+
+function absPath() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.realpath('${dest}')" )
+  echo ${dest}
+  }
+
+function dirName() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.dirname('${dest}')" )
+  echo ${dest}
+  }
+
+function parDir() {
+  local dest=${1}
+  dest=$( python -c "import os; print os.path.split(os.path.abspath('${dest}'))[0]" )
+  echo ${dest}
+  }
+
+function doSplash() {
+  cat <<'EOF'
+    ############################################################
+  ##   _____ ____ _   _         _              _ _     _        ##
+  ##  |  ___/ ___| | | |       / \   _ __  ___(_) |__ | | ___   ##
+  ##  | |_ | |   | | | |_____ / _ \ | '_ \/ __| | '_ \| |/ _ \  ##
+  ##  |  _|| |___| |_| |_____/ ___ \| | | \__ \ | |_) | |  __/  ##
+  ##  |_|   \____|\___/     /_/   \_\_| |_|___/_|_.__/|_|\___|  ##
+  ##                                             By Delaballe®  ##
+    ############################################################
+EOF
+  }
+
+function doInstall() {
+  local dest=${1}
+  export SCRIPT_DIR="${BASH_SOURCE[0]}"
+  SCRIPT_DIR=$( absPath ${SCRIPT} )
+  if [[ ! -d "${SCRIPT_DIR}/${dest}" ]]
+  then
+    doSplash
+    printf "\n        %s \n" "console --> /tmp/fcu-ansible-$DATE.log"
+    task "Cloning fcu-ansible" "git clone https://github.com/delaballe/fcu-ansible.git ${dest}"
+    cd ${SCRIPT_DIR}/${dest}
+    task "Creating Virtualenv" "virtualenv --always-copy ."
+    . ./bin/activate
+    task "Install python Dependencies" "pip install -r requirement-pip"
+    task "Install fcu-andible lib" "pip install -r requirement-fcu-ansible"
+    echo -e "\n\n\t    Generating config/outscale.ini\n"
+    read -r -p  $'\tEnter your Outscale Default Region [ENTER]: ' OCS_REGION
+    read -r -p  $'\tEnter your Default OSC_ACCESS_KEY_ID [ENTER]: ' OCS_ACCESS_KEY_ID
+    read -r -p  $'\tEnter your Default OSC_SECRET_ACCESS_KEY [ENTER]: ' OCS_SECRET_ACCESS_KEY
+    cat <<EOF>config/outscale.ini
+[default]
+aws_access_key_id = $OCS_ACCESS_KEY_ID
+aws_secret_access_key =  $OCS_SECRET_ACCESS_KEY
+EOF
+    echo -e "\n\t    Generating config/gitlab.ini\n"
+    read -r -p $'\tEnter your Outscale Gitlab user private_token [ENTER]: ' OCS_GITLAB_TOKEN
+    cat <<EOF>config/gitlab.ini
+[global]
+default = outscale
+ssl_verify = false
+timeout = 5
+
+[outscale]
+url = http://git-int.admin
+private_token = $OCS_GITLAB_TOKEN
+EOF
+    exit 0
+  else
+    echo "The project ${dest} Allready exist !!!"
+    exit 1
+  fi
+  }
+
+function roleGet() {
+  local repo=${1}
+  local role=${2}
+  if [[ ! -d roles/${role} ]]
+  then
+    git clone ${repo} roles/${role}
+  else
+    echo "Role ${role} Allready exist"
+  fi
+  }
+
+function rolesGet() {
+  local roles=${1}
+  for repo in $( cat $roles )
+  do
+    role=$( echo ${repo} | awk -F"/" '{print $NF}' | sed 's/ansible-role\.//g' )
+    roleGet ${repo} ${role}
+  done
+  }
+
+function playbookGet() {
+  local playbook=$1
+  printf "\n        %s \n" "console --> /tmp/fcu-ansible-$DATE.log"
+
+  task "Cloning fcu-ansible" "git clone https://github.com/delaballe/fcu-playbook/$playbook.git ${playbook}"
+}
+
+function playbooksList() {
+  gitlab -v -c config/gitlab.ini project search --query playbook | grep -E "(^ssh-url-to-repo:|^id:|^name:)"
+}
+
+function playbooksSearch() {
+  local query=$1
+  gitlab -v -c config/gitlab.ini project list --all | grep playbook | grep $query | grep -E "(^ssh-url-to-repo:|^id:|^name:)"
+  if [[ $? -ne 0 ]]
+  then
+    printf "\n\t\t%s \n" "No playbook Found matching $query"
+  fi
+}
+
+function checkResult() {
+  if [ $1 -eq 0 ]
+  then
+    printf "[ \e[92m OK \e[39m]"
+  else
+    printf "[ \e[31m KO \e[39m]"
+    exit 1
+  fi
+
+}
+
+function task(){
+  local msg=$1
+  local cmd=$2
+  local delay=0.75
+  local spinstr='|/-\'
+  if [ ! -d /tmp/fcu-ansible ]
+  then
+    mkdir /tmp/fcu-ansible
+  fi
+  $( ${cmd} >> /tmp/fcu-ansible-$DATE.log 2>&1  ) & PID=$!
+
+  # While process is running...
+  printf "\n%-10s %-30s" " " "$msg"
+  while kill -0 $PID 2> /dev/null; do
+    local temp=${spinstr#?}
+    printf "[  %c  ]" "$spinstr"
+    local spinstr=$temp${spinstr%"$temp"}
+    sleep $delay
+    printf "\b\b\b\b\b\b\b"
+  done
+  wait $PID
+  my_status=$?
+  printf "    \b\b\b\b"
+  checkResult $my_status
+}
+
+
+export DATE=`date +%Y-%m-%d:%H:%M:%S`
+case "$1" in
+  install)
+          doInstall $2
+          ;;
+
+  role)
+        if [[ $2 == 'get' ]]
+        then
+          rolesGet $3
+        fi
+        ;;
+
+  playbook)
+        case "$2" in
+          get)
+            playbookGet $3
+            ;;
+          list)
+            playbooksList
+            ;;
+          search)
+            playbooksSearch $3
+            ;;
+        esac
+        ;;
+  *)
+        echo $"Usage: $0 {install|role|playbook}"
+        exit 1
+        ;;
+esac
